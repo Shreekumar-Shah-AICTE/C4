@@ -1,0 +1,13 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/app/**/{page,layout,route,not-found,error,loading,template}.{ts,tsx}",
+    "src/middleware.ts",
+    "tests/**/*.test.{ts,tsx}",
+    "e2e/**/*.spec.ts",
+    "vitest.setup.ts"
+  ],
+  "project": ["src/**/*.{ts,tsx}", "tests/**/*.{ts,tsx}", "e2e/**/*.ts"],
+  "vitest": { "config": ["vitest.config.ts"] },
+  "playwright": { "config": ["playwright.config.ts"] }
+}
