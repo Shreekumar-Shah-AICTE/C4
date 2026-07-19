@@ -9,8 +9,8 @@
 [![CI](https://github.com/Shreekumar-Shah-AICTE/Wayfare/actions/workflows/ci.yml/badge.svg)](https://github.com/Shreekumar-Shah-AICTE/Wayfare/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/Shreekumar-Shah-AICTE/Wayfare/actions/workflows/codeql.yml/badge.svg)](https://github.com/Shreekumar-Shah-AICTE/Wayfare/actions/workflows/codeql.yml)
 [![Coverage](https://img.shields.io/badge/coverage-100%25%20line%20%26%20branch-2ea44f)](./vitest.config.ts)
-[![Mutation](https://img.shields.io/badge/mutation-90.3%25%20core-2ea44f)](./stryker.config.json)
-[![Tests](https://img.shields.io/badge/tests-134%20passing-2ea44f)](./tests)
+[![Mutation](https://img.shields.io/badge/mutation-90.3%25%20core-2ea44f)](./stryker.config.mjs)
+[![Tests](https://img.shields.io/badge/tests-139%20passing-2ea44f)](./tests)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)](./tsconfig.json)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
@@ -45,6 +45,7 @@ tournament stadium, and reads the directions back in their language.
 - [What makes Wayfare different](#what-makes-wayfare-different)
 - [Approach: decisions are deterministic, the AI only phrases them](#approach-decisions-are-deterministic-the-ai-only-phrases-them)
 - [Technical gravity (the CS that stands on its own)](#technical-gravity-the-cs-that-stands-on-its-own)
+- [Design decisions (ADRs)](#design-decisions-adrs)
 - [Tech stack](#tech-stack)
 - [Project structure](#project-structure)
 - [Problem-alignment map](#problem-alignment-map)
@@ -98,7 +99,7 @@ Wayfare solves exactly this, deeply, for one persona:
 | 🗣️ **Speaks your language** | Turn-by-turn narration is localized, including right-to-left languages. | `src/ai/narrator.ts` |
 | 🔌 **Fails safe, always** | Delete every AI call and Wayfare still computes correct, accessible routes. The model only makes the last mile friendlier. | `src/ai/fallback.ts` |
 | 🔒 **Injection-proof by design** | The LLM never makes a decision, so it can never be tricked into inventing a turn. | `src/core/geometry.ts` |
-| 🧪 **Proven, not promised** | 134 tests, 100% line & branch coverage on the core, mutation-tested. | `tests/`, `stryker.config.json` |
+| 🧪 **Proven, not promised** | 139 tests, 100% line & branch coverage on the core, mutation-tested. | `tests/`, `stryker.config.mjs` |
 
 ---
 
@@ -143,6 +144,41 @@ accessible, crowd-aware routes. The model only makes the last mile friendlier.
   `O(1)` node and neighbour access. See `src/core/graph.ts`.
 - **Deterministic turn geometry** — turn directions are derived from planar
   bearings, so narration can never invent a turn. See `src/core/geometry.ts`.
+
+---
+
+## Design decisions (ADRs)
+
+The choices below are the ones a reviewer most often asks "why?" about. Each is
+recorded in full — context, decision, and trade-off — in
+[`ARCHITECTURE.md`](./ARCHITECTURE.md); the short version:
+
+- **A deterministic core, with the LLM as a pure narrator.** Every routing
+  decision is made by typed, tested code; the model only rephrases
+  already-computed steps. *Why:* it makes the product testable, prompt-injection
+  proof, and fully usable offline. *Trade-off:* the model cannot "improve" a
+  route — by design.
+- **Dijkstra + a hand-written binary heap, not a graph library.** *Why:* segment
+  weights fuse distance, a per-profile mode multiplier, and a live crowd penalty,
+  so no admissible A\* heuristic exists without extra assumptions, and the
+  algorithm is the heart of the "Efficiency" story worth owning outright.
+  *Trade-off:* a little more code than importing a dependency, in exchange for a
+  zero-dependency, fully-mutation-tested `O((V + E) log V)` engine.
+- **Infeasibility as `Infinity`, not a post-filter.** Stairs for a wheelchair
+  return an infinite segment weight, so they leave the search space entirely.
+  *Why:* the engine can never hand a fan an impossible path. *Trade-off:* profile
+  rules live in one weight function rather than a separate validation pass.
+- **Fail closed on every AI or network error.** A missing key, timeout, or
+  malformed reply falls back to deterministic English narration. *Why:* a blank
+  screen is never acceptable for wayfinding. *Trade-off:* offline narration is
+  templated, not fluent.
+- **Nonce-based CSP with `strict-dynamic`, applied in middleware.** *Why:* one
+  hardened policy covers every route, including static assets. *Trade-off:* the
+  app renders dynamically so Next.js can stamp the per-request nonce onto its
+  bootstrap scripts (a subtlety that once caused a blank page — see the ADR).
+- **Validation at the boundary with strict Zod schemas.** Unknown fields are
+  rejected and DoS guards cap upload size, node/edge/sample counts. *Why:* the
+  core can then trust its inputs completely.
 
 ---
 
@@ -206,8 +242,8 @@ Every claim below is reproducible with one command; run them and read the output
 
 ### Measured on this codebase
 
-- **134 tests pass**; **100% line and branch coverage** on the core, AI, and
-  server layers (1,496/1,496 statements, 322/322 branches, 111/111 functions).
+- **139 tests pass**; **100% line and branch coverage** on the core, AI, and
+  server layers (1,496/1,496 statements, 321/321 branches, 110/110 functions).
 - **90.3% mutation score** on the routing core (Stryker; CI breaks below 90%).
 - **0** type errors, **0** lint findings (`--max-warnings=0`), **0%** code
   duplication, **0** circular dependencies, **0** unused files/exports/deps.
