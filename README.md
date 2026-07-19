@@ -6,7 +6,8 @@
 
 [![Live Demo](https://img.shields.io/badge/%E2%96%B6%20Live%20Demo-wayfare--beta.vercel.app-000000?style=for-the-badge&logo=vercel)](https://wayfare-beta.vercel.app/)
 
-[![CI quality gate](https://img.shields.io/badge/CI-quality%20gate-2ea44f)](./ci/ci.yml)
+[![CI](https://github.com/Shreekumar-Shah-AICTE/Wayfare/actions/workflows/ci.yml/badge.svg)](https://github.com/Shreekumar-Shah-AICTE/Wayfare/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/Shreekumar-Shah-AICTE/Wayfare/actions/workflows/codeql.yml/badge.svg)](https://github.com/Shreekumar-Shah-AICTE/Wayfare/actions/workflows/codeql.yml)
 [![Coverage](https://img.shields.io/badge/coverage-100%25%20line%20%26%20branch-2ea44f)](./vitest.config.ts)
 [![Mutation](https://img.shields.io/badge/mutation-90.3%25%20core-2ea44f)](./stryker.config.json)
 [![Tests](https://img.shields.io/badge/tests-134%20passing-2ea44f)](./tests)
@@ -235,13 +236,11 @@ npm run e2e        # Playwright smoke test + axe accessibility scan
 
 ### Continuous integration
 
-The full quality gate is defined in [`ci/ci.yml`](./ci/ci.yml) (lint, types,
-format, duplication, dead-code, coverage, mutation, dependency audit, secret
-scan, build) and [`ci/codeql.yml`](./ci/codeql.yml) (static analysis). To run it
-on GitHub Actions, move both files into `.github/workflows/` (kept out of that
-folder here only because the automation token used to publish this repo lacks
-the `workflow` scope). Every command the gate runs is reproducible locally with
-the scripts above.
+Every push runs the full quality gate on GitHub Actions:
+[`ci.yml`](./.github/workflows/ci.yml) (lint, types, format, duplication,
+dead-code, coverage, mutation, dependency audit, secret scan, build) and
+[`codeql.yml`](./.github/workflows/codeql.yml) (static analysis). Every command
+the gate runs is also reproducible locally with the scripts above.
 
 ### Deploy (Vercel)
 
