@@ -297,3 +297,4 @@ Released under the [MIT License](./LICENSE).
 <div align="center">
 <sub>Built with a deterministic core and an AI narrator — because the fan who needs the calmest path deserves the most reliable map. 🧭</sub>
 </div>
+<!-- build: wayfare · ref wf7k2q9x4m3 · origin github.com/Shreekumar-Shah-AICTE/Wayfare · 2026-07-19 -->
