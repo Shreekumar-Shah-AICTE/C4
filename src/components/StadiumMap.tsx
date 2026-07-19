@@ -82,7 +82,11 @@ export function StadiumMap({
   const nodesById = indexNodes(nodes);
   const heatBySegment = indexHeat(heat);
   const path = routePath(routeNodeIds, nodesById);
-  const label = `Stadium map showing the route from ${originId} to ${destinationId}.`;
+  // Prefer the human-readable node labels over raw ids in the accessible name so
+  // a screen reader announces "North Gate", not "gate-n".
+  const originName = nodesById.get(originId)?.label ?? originId;
+  const destinationName = nodesById.get(destinationId)?.label ?? destinationId;
+  const label = `Stadium map showing the route from ${originName} to ${destinationName}.`;
 
   return (
     <svg

@@ -13,6 +13,10 @@
   --moderate: #f2c14e;
   --busy: #f08a3c;
   --congested: #ef4d3c;
+  /* Dedicated error-text red. The crowd `--congested` hue (#ef4d3c) is tuned for
+     the map heat overlay and only reaches 3.95:1 as text on the panel; this
+     lighter red clears WCAG AA (>=4.5:1) on both panel and elevated surfaces. */
+  --danger: #ff6a5a;
   --route: #7fd1ff;
   --radius: 14px;
   --shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
@@ -315,7 +319,7 @@ input[type='range'] {
 }
 
 .status[data-tone='error'] {
-  color: var(--congested);
+  color: var(--danger);
 }
 
 .status[data-tone='success'] {

@@ -1,11 +1,12 @@
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ControlPanel } from '@/components/ControlPanel';
 import { DirectionsList } from '@/components/DirectionsList';
 import { JourneySummary } from '@/components/JourneySummary';
+import { NarrationPanel } from '@/components/NarrationPanel';
 import { StadiumMap } from '@/components/StadiumMap';
 import type {
   MobilityProfile,
@@ -87,6 +88,10 @@ const form: RouteForm = {
 };
 
 describe('presentational components', () => {
+  // The suite runs with `globals: false`, so RTL's automatic per-test cleanup is
+  // not registered; unmount explicitly to keep the shared DOM isolated.
+  afterEach(cleanup);
+
   it('renders directions with crowd labels and no a11y violations', async () => {
     const { container } = render(<DirectionsList steps={steps} />);
     expect(screen.getByRole('list', { name: /directions/i })).toBeInTheDocument();
@@ -114,6 +119,71 @@ describe('presentational components', () => {
       />,
     );
     expect(screen.getByRole('img', { name: /stadium map/i })).toBeInTheDocument();
+  });
+
+  it('tags model narration with its true language and direction', () => {
+    const { container } = render(
+      <NarrationPanel
+        narration={{ text: 'اذهب مباشرة ثم تصل.', source: 'model', locale: 'ar' }}
+        rtl
+        pending={false}
+      />,
+    );
+    const paragraph = screen.getByText('اذهب مباشرة ثم تصل.');
+    expect(paragraph).toHaveAttribute('lang', 'ar');
+    // The whole region flips to RTL only for genuine right-to-left model output.
+    expect(container.querySelector('.narration')).toHaveAttribute('dir', 'rtl');
+  });
+
+  it('keeps the English fallback left-to-right even for an RTL locale', () => {
+    const { container } = render(
+      <NarrationPanel
+        narration={{
+          text: 'Start at Gate and head toward Hall.',
+          source: 'fallback',
+          locale: 'ar',
+        }}
+        rtl
+        pending={false}
+      />,
+    );
+    const paragraph = screen.getByText(/Start at Gate/);
+    expect(paragraph).toHaveAttribute('lang', 'en');
+    expect(container.querySelector('.narration')).toHaveAttribute('dir', 'ltr');
+  });
+
+  it('exposes the arrival time as a human clock value on the slider', () => {
+    render(
+      <ControlPanel
+        nodes={nodes}
+        profiles={profiles}
+        locales={['en']}
+        datasets={[{ id: 'seed', label: 'Seed', sampleCount: 3 }]}
+        form={{ ...form, minuteOfDay: 600 }}
+        pending={false}
+        onChange={vi.fn()}
+        onSubmit={vi.fn()}
+        onNarrate={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole('slider')).toHaveAttribute('aria-valuetext', '10:00');
+  });
+
+  it('names the stadium map with human labels, not raw ids', () => {
+    render(
+      <StadiumMap
+        nodes={nodes}
+        edges={edges}
+        heat={[]}
+        routeNodeIds={route.nodeIds}
+        originId="gate-n"
+        destinationId="seat-101"
+        animate={false}
+      />,
+    );
+    expect(
+      screen.getByRole('img', { name: /from North Gate to Section 101/i }),
+    ).toBeInTheDocument();
   });
 
   it('emits form changes through the control panel', async () => {

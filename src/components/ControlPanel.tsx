@@ -105,6 +105,10 @@ export function ControlPanel({
           max={TIME_MAX}
           step={TIME_STEP}
           value={form.minuteOfDay}
+          // Announce the human clock time (e.g. "10:00") to screen readers
+          // instead of the raw minute-of-day number the slider would otherwise
+          // expose (WCAG 4.1.2 Name, Role, Value).
+          aria-valuetext={minuteToClock(form.minuteOfDay)}
           onChange={(event) => {
             onChange({ minuteOfDay: Number(event.target.value) });
           }}
