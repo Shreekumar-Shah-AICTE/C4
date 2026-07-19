@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { GenerationClient } from '@/ai/client';
-import { fallbackNarration, narrateRoute } from '@/ai/narrator';
+import { narrateRoute } from '@/ai/narrator';
 import type { NavigationStep } from '@/core/types';
 
 const steps: readonly NavigationStep[] = [
@@ -63,21 +63,6 @@ const steps: readonly NavigationStep[] = [
 ];
 
 const noSleep = async (): Promise<void> => {};
-
-describe('fallbackNarration', () => {
-  it('describes every step kind deterministically', () => {
-    const text = fallbackNarration(steps);
-    expect(text).toContain('Start at Gate');
-    expect(text).toContain('Continue to Bend');
-    expect(text).toContain('Turn left toward Ramp');
-    expect(text).toContain('Take the elevator to Upper');
-    expect(text).toContain('Arrive at Seat');
-  });
-
-  it('handles an empty step list', () => {
-    expect(fallbackNarration([])).toContain('already at your destination');
-  });
-});
 
 describe('narrateRoute', () => {
   it('falls back to deterministic narration when no client is available', async () => {

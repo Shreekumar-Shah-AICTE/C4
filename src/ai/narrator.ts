@@ -11,6 +11,7 @@
 import type { NavigationStep } from '@/core/types';
 
 import type { GenerationClient } from './client';
+import { describeStep, fallbackNarration } from './fallback';
 import { runResilient, type ResilienceOptions } from './resilience';
 import { sanitizeModelText } from './sanitize';
 
@@ -30,31 +31,6 @@ export interface NarrationResult {
 export interface NarrationDeps {
   readonly client: GenerationClient | null;
   readonly sleep?: (ms: number) => Promise<void>;
-}
-
-function describeStep(step: NavigationStep): string {
-  const distance = `${step.distanceMeters} m`;
-  if (step.kind === 'depart') {
-    return `Start at ${step.fromLabel} and head toward ${step.toLabel} (${distance}).`;
-  }
-  if (step.kind === 'continue') {
-    return `Continue to ${step.toLabel} (${distance}).`;
-  }
-  if (step.kind === 'turn') {
-    return `Turn ${step.turn} toward ${step.toLabel} (${distance}).`;
-  }
-  if (step.kind === 'transition') {
-    return `Take the ${step.mode} to ${step.toLabel} (${distance}).`;
-  }
-  return `Arrive at ${step.toLabel}.`;
-}
-
-/** Deterministic, offline-safe narration built purely from the step list. */
-export function fallbackNarration(steps: readonly NavigationStep[]): string {
-  if (steps.length === 0) {
-    return 'You are already at your destination.';
-  }
-  return steps.map(describeStep).join(' ');
 }
 
 function buildPrompt(steps: readonly NavigationStep[], locale: string): string {
